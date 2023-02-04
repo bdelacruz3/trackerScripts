@@ -1,0 +1,48 @@
+/**
+ * Changes the variable validation if needed
+ */
+
+var validation = {
+    sheet: 'validation',
+    range: 'A1:A'
+}
+
+/**
+ * Creates a menu entry in the Google Docs UI when the document is opened.
+ *
+ * @param {object} e The event parameter for a simple onOpen trigger. To
+ *     determine which authorization mode (ScriptApp.AuthMode) the trigger is
+ *     running in, inspect e.authMode.
+ */
+function onOpen(e) {
+    SpreadsheetApp.getUi().createMenu('Show Me Your Kitties')
+        .addItem('Show Me Your Kitties', 'showMeYourKitties')
+        .addToUi();
+        showMeYourKitties();
+}
+
+
+/**
+ * Opens a sidebar in the document containing the add-on's user interface.
+ */
+
+function showMeYourKitties() {
+    SpreadsheetApp.getUi()
+        .showSidebar(HtmlService.createTemplateFromFile('Show Me Your Kitties')
+            .evaluate()
+            .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+            .setTitle('Multiple selector'));
+}
+
+function getOptions() {
+    return SpreadsheetApp.getActive().getSheetByName(validation.sheet).getRange(validation.range).getDisplayValues()
+        .filter(String)
+        .reduce(function(a, b) {
+            return a.concat(b)
+        })
+}
+
+function process(arr) {
+    arr.length > 0 ? SpreadsheetApp.getActiveRange().clearContent().setValue(arr.join(", ")) :
+        SpreadsheetApp.getUi().alert('No options selected')
+}
