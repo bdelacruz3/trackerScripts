@@ -1,0 +1,46 @@
+//Public Sheets Universe Copy
+// This script enables the user to submit inputs to the stock db. It works for all the various submit buttons on the 'submit' sheet
+
+function onEdit(e) {
+
+    console.log(JSON.stringify(e));
+  
+    const sh=e.range.getSheet();
+    
+    
+    if(sh.getName()=="submit" && e.value=="Submit") {  //If user chooses "submit" then execute this
+  
+      var ss        = SpreadsheetApp.getActiveSpreadsheet();
+      var formSS    = ss.getSheetByName("submit"); //Data entry Sheet
+      var dbsheet   = ss.getSheetByName("database"); //Data Sheet
+      var submitCol = e.range.columnStart; //Determine column of the submit button that was triggered
+      var submitRow = e.range.rowStart; //Determine row of the submit button that was triggered
+      var manualRange = formSS.getRange((submitRow-1), 4, 1, (submitCol-1)); // Manual Range starts at Col4
+      var range = formSS.getRange((submitRow), 2, 1, (submitCol-1));
+      var values = range.getValues();
+      Logger.log(values);
+       
+      dbsheet.getRange(dbsheet.getLastRow()+1, 1, 1,submitCol-1).setValues(values); // Add a new row to the db sheet and copy the array to that row
+  
+      e.source.toast(formSS.getRange((submitRow),2).getValue()+' ('+formSS.getRange((submitRow),4).getValue()+') successfully updated', 'Success!');
+  
+      manualRange.clearContent(); // Clear the contents of the manual entry row (the row labeled "New Data for DB")
+  
+    }
+    
+  
+  // If "clear" is selected then clear all input fields
+    if(sh.getName()=="submit" && e.value=="Clear") {
+  
+      var ss        = SpreadsheetApp.getActiveSpreadsheet();
+      var formSS    = ss.getSheetByName("submit"); //Data entry Sheet
+      var submitCol = e.range.columnStart; //Determine column of the submit button that was triggered
+      var submitRow = e.range.rowStart; //Determine row of the submit button that was triggered
+      var manualRange = formSS.getRange((submitRow-1), 4, 1, 24); // The row where the user can manually provide inputs "New Data for DB"    
+      
+      manualRange.clearContent();
+  
+          
+    }
+  
+  }
