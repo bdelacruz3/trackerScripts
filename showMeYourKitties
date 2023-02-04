@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<style>
+    .container,
+    .buttons {
+        margin: 5px;
+        width: 95%;
+        padding: 2px;
+        font-size: 13px;
+    }
+</style>
+
+<head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+</head>
+
+<body>
+    <div class="container"></div>
+    <div class="buttons">
+        <p>
+            <button class="action" id="action">Fill active cell</button>
+            <button id="btn">Rebuild options</button>
+        </p>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="https://cdn.rawgit.com/mdehoog/Semantic-UI/6e6d051d47b598ebab05857545f242caf2b4b48c/dist/semantic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            createList();
+            var selected = [];
+            $('.ui.checkbox').checkbox();
+            $("#action").click(function() {
+                $("input:checkbox[name=sel]:checked").each(function() {
+                    selected.push($(this).val());
+                    $(this).prop( "checked", false ); 
+                });
+                google.script.run.process(selected)
+                selected.length = 0;
+            });
+            $("#btn").click(function() {
+                createList();
+            });
+        });
+
+        function options(arr) {
+            $(".container").empty();
+            $(arr).each(function(i, el) {
+                $(".container").append('<div class="field"><div class="ui checkbox"><input type="checkbox" name="sel" value="' + el + '"><label>' + el + '</label></div></div>')
+            });
+        }
+
+        function createList() {
+            google.script.run.withSuccessHandler(options).getOptions()
+        }
+    </script>
+</body>
+
+</html>
