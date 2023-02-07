@@ -1,0 +1,73 @@
+// Get CSV data from Sharadar Quandle Nasdaq for a specific date into google sheets via google apps script
+// https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=2017-10-30&api_key=YOUR_API_KEY
+// &qopts.columns=ticker,close&api_key=YOUR_API_KEY
+// dates will be in the format YYYY-MM-DD and imported from a cell in the sheet
+
+function getSharadarPrice() {
+// get yesterday's prices
+    var yesterday = new Date();
+        yesterday.setTime(yesterday.valueOf() - 24 * 60 * 60 * 1000);
+    var date = Utilities.formatDate(yesterday, "GMT", "yyyy-MM-dd");
+    var columnsTickerClose = "&qopts.columns=date,ticker,close";
+    var api_key = "YOUR_API_KEY";
+    var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+    var response = UrlFetchApp.fetch(url);
+    var csv = response.getContentText();
+    var data = Utilities.parseCsv(csv);
+    var sheet = SpreadsheetApp.getActiveSheet();
+    sheet.getRange(1, 4, data.length, data[0].length).setValues(data);
+
+    // get today's prices
+    var today = new Date();
+    var date = Utilities.formatDate(today, "GMT", "yyyy-MM-dd");
+    var columnsTickerClose = "&qopts.columns=date,ticker,close";
+    var api_key = "YOUR_API_KEY";
+    var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+    var response = UrlFetchApp.fetch(url);
+    var csv = response.getContentText();
+    var data = Utilities.parseCsv(csv);
+    var sheet = SpreadsheetApp.getActiveSheet();
+    sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+
+    // get prrices from 5 working days ago
+    var fiveDaysAgo = new Date();
+        fiveDaysAgo.setTime(fiveDaysAgo.valueOf() - 5 * 24 * 60 * 60 * 1000);
+    var date = Utilities.formatDate(fiveDaysAgo, "GMT", "yyyy-MM-dd");
+    var columnsTickerClose = "&qopts.columns=date,ticker,close";
+    var api_key = "YOUR_API_KEY";
+    var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+    var response = UrlFetchApp.fetch(url);
+    var csv = response.getContentText();
+    var data = Utilities.parseCsv(csv);
+    var sheet = SpreadsheetApp.getActiveSheet();
+    sheet.getRange(1, 7, data.length, data[0].length).setValues(data);
+
+    // get prrices from 20 working days ago
+    var twentyDaysAgo = new Date();
+        twentyDaysAgo.setTime(twentyDaysAgo.valueOf() - 20 * 24 * 60 * 60 * 1000);
+    var date = Utilities.formatDate(twentyDaysAgo, "GMT", "yyyy-MM-dd");
+    var columnsTickerClose = "&qopts.columns=date,ticker,close";
+    var api_key = "YOUR_API_KEY";
+    var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+    var response = UrlFetchApp.fetch(url);
+    var csv = response.getContentText();
+    var data = Utilities.parseCsv(csv);
+    var sheet = SpreadsheetApp.getActiveSheet();
+    sheet.getRange(1, 10, data.length, data[0].length).setValues(data);
+
+    // get prrices from 80 working days ago
+    var eightyDaysAgo = new Date();
+        eightyDaysAgo.setTime(eightyDaysAgo.valueOf() - 80 * 24 * 60 * 60 * 1000);
+    var date = Utilities.formatDate(eightyDaysAgo, "GMT", "yyyy-MM-dd");
+    var columnsTickerClose = "&qopts.columns=date,ticker,close";
+    var api_key = "YOUR_API_KEY";
+    var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+    var response = UrlFetchApp.fetch(url);
+    var csv = response.getContentText();
+    var data = Utilities.parseCsv(csv);
+    var sheet = SpreadsheetApp.getActiveSheet();
+    sheet.getRange(1, 13, data.length, data[0].length).setValues(data);
+
+
+    }
+
