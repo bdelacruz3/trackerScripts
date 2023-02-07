@@ -1,6 +1,6 @@
 // Get CSV data from Sharadar Quandle Nasdaq for a specific date into google sheets via google apps script
 // https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=2017-10-30&api_key=YOUR_API_KEY
-// &qopts.columns=ticker,close&api_key=U1PMQPw9katv6EJkmQmw
+// &qopts.columns=ticker,close&api_key=YOUR_API_KEY
 // dates will be in the format YYYY-MM-DD and imported from a cell in the sheet
 
 function getSharadarPrice() {
