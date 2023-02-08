@@ -6,7 +6,7 @@
 function getSharadarPrice() {
 // get yesterday's prices
     var yesterday = new Date();
-        yesterday.setTime(yesterday.valueOf() - 24 * 60 * 60 * 1000);
+        yesterday.setTime(yesterday.valueOf() - 1 * 24 * 60 * 60 * 1000);
     var date = Utilities.formatDate(yesterday, "GMT", "yyyy-MM-dd");
     var columnsTickerClose = "&qopts.columns=date,ticker,close";
     var api_key = "YOUR_API_KEY";
