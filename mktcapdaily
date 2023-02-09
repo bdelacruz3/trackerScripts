@@ -1,0 +1,34 @@
+// Download Market Cap data from Sharadar
+// Get CSV data from Sharadar Quandle Nasdaq for a specific date into google sheets via google apps script
+// https://data.nasdaq.com/api/v3/datatables/SHARADAR/DAILY.csv?date=2023-02-07&qopts.columns=ticker,marketcap&api_key=YOUR_API_KEY
+function getSharadarMarketCap() {
+    // Replace "SHEET_ID" with the ID of the Google Sheet you want to write to
+    var sheetId = "YOUR_SHEET_ID";
+    
+    // Replace "SHEET_NAME" with the name of the sheet in the Google Sheet you want to write to
+    var sheetName = "mktcap";
+    
+    // Replace "URL" with the URL of the CSV file in Sharadar
+    var csvUrl = "URL";
+    
+    // Get the Google Sheet with the specified ID
+    var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
+    
+    // Clear the current data in the sheet
+    sheet.clearContents();
+    
+    
+    
+        var today = new Date();
+        var date = Utilities.formatDate(today, "GMT", "yyyy-MM-dd");
+        var columnsTickerMarketCap = "&qopts.columns=date,ticker,marketcap";
+    
+         var api_key = "YOUR_API_KEY";
+         var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/DAILY.csv?date=" + date + columnsTickerMarketCap + "&api_key=" + api_key;
+         var response = UrlFetchApp.fetch(url);
+         var csv = response.getContentText();
+         var data = Utilities.parseCsv(csv);
+         var sheet = SpreadsheetApp.getActiveSheet();
+         sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+            Logger.log(data);
+    }
