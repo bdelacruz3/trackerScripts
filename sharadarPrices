@@ -4,7 +4,13 @@
 // dates will be in the format YYYY-MM-DD and imported from a cell in the sheet
 
 function getSharadarPrice() {
-// get yesterday's prices
+// Open sheet named "prices"
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("prices");
+    
+// Clear the current data in the sheet
+    sheet.clearContents();
+
+// Get yesterday's prices and set values starting in column 4
     var yesterday = new Date();
         yesterday.setTime(yesterday.valueOf() - 1 * 24 * 60 * 60 * 1000);
     var date = Utilities.formatDate(yesterday, "CST", "yyyy-MM-dd");
@@ -17,7 +23,7 @@ function getSharadarPrice() {
     var sheet = SpreadsheetApp.getActiveSheet();
     sheet.getRange(1, 4, data.length, data[0].length).setValues(data);
 
-    // get today's prices
+    // Get today's prices and set values starting in column 1
     var today = new Date();
     var date = Utilities.formatDate(today, "CST", "yyyy-MM-dd");
     var columnsTickerClose = "&qopts.columns=date,ticker,close";
@@ -29,7 +35,7 @@ function getSharadarPrice() {
     var sheet = SpreadsheetApp.getActiveSheet();
     sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
 
-    // get prrices from 5 working days ago
+    // get prrices from 5 working days ago and set values starting in column 7
     var fiveDaysAgo = new Date();
         fiveDaysAgo.setTime(fiveDaysAgo.valueOf() - 5 * 24 * 60 * 60 * 1000);
     var date = Utilities.formatDate(fiveDaysAgo, "CST", "yyyy-MM-dd");
@@ -42,7 +48,7 @@ function getSharadarPrice() {
     var sheet = SpreadsheetApp.getActiveSheet();
     sheet.getRange(1, 7, data.length, data[0].length).setValues(data);
 
-    // get prrices from 20 working days ago
+    // get prrices from 20 working days ago and set values starting in column 10
     var twentyDaysAgo = new Date();
         twentyDaysAgo.setTime(twentyDaysAgo.valueOf() - 20 * 24 * 60 * 60 * 1000);
     var date = Utilities.formatDate(twentyDaysAgo, "CST", "yyyy-MM-dd");
@@ -55,7 +61,7 @@ function getSharadarPrice() {
     var sheet = SpreadsheetApp.getActiveSheet();
     sheet.getRange(1, 10, data.length, data[0].length).setValues(data);
 
-    // get prrices from 80 working days ago
+    // get prrices from 80 working days ago and set values starting in column 13
     var eightyDaysAgo = new Date();
         eightyDaysAgo.setTime(eightyDaysAgo.valueOf() - 80 * 24 * 60 * 60 * 1000);
     var date = Utilities.formatDate(eightyDaysAgo, "CST", "yyyy-MM-dd");
