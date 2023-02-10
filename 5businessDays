@@ -1,0 +1,23 @@
+//"https://stackoverflow.com/questions/50686060/get-5-business-days-before-today"
+
+function business_day_from_date(daysAgo, date) {//pass date in
+  const result = [];
+  const d = new Date(date);//do not mutate date passed in
+  while (daysAgo > 0) {//while we have not enough work days
+    d.setDate(d.getDate() - 1);//take one day of the copy of the date passed in
+    if (d.getDay() !== 0 && d.getDay() !== 6) {//if not sat or sun
+      daysAgo--;//we found one
+      result.push(new Date(d));//add copy of the found one to result
+    }
+  }
+  return result.reverse();//oldest to newest
+}
+function formatDate(date){
+  return (date.getMonth()+1) + "-" + date.getDate() + "-" + date.getFullYear()
+}
+console.log(
+  "date passed in:",formatDate(new Date()),
+  business_day_from_date(3, new Date()).map(
+    function(date){return formatDate(date);}
+  )
+)
