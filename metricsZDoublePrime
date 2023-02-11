@@ -1,0 +1,79 @@
+Studies such as Altman and Rijken (2004, 2006) clearly **show that agency ratings are generally slower to react to changes**, primarily deteriorations in performance, than established models based on point-in-time estimations, eg, Z-score-type models or KMV structural estimates.
+
+https://mebfaber.com/wp-content/uploads/2020/11/Altman_Z_score_models_final.pdf
+
+
+
+# Ratios and what they try to measure
+### Working Capital / Total Assets (Z1=WC/TA) 
+Working capital is the difference between current assets and current liabilities. It is considered as liquid asset for company to meet their short-term obligation effectively. **A company is able to meet its short-term obligation when there is positive working capital. When there is insufficient working capital, the company is concerned that they will not be able to pay their short-term debt.** Normally, the companies that are facing financial difficulties will have a shrinking asset which will cause them to be non-liquid and fail to pay their creditors.
+
+### Retained Earnings / Total Assets(Z2=RE/TA) 
+Retained earnings are the amount of earning that is not paid out as dividend. The purpose of retaining the company's earning is to allow the company to ==reinvest without adopting external fund== with more cost. **In other words, retained earnings can be used to measure the extent of a company by using leverage. If this ratio is high, it means that there is sufficient funding for the firm to reinvest. If the ratio is low, the company will borrow instead of retaining earnings to finance their investment.** This will increase the company‟s chance of being default.
+
+### Earnings before Interest and Tax / Total Assets (Z3=EBIT/TA) 
+This ratio is used to evaluate the company's ability to generate ==operating profit with existing asset==. **When the company has high profit with low asset, it has a relatively low chance of getting default. It is due to the dollar of asset that is able to generate a larger amount of operating profit.** On the other way, lower income might not be enough to cover company's daily expenses.
+
+### Market Value of Equity / Total Liabilities (X4=MV/TL) 
+By referring to this ratio, we are able to measure how fast the company's asset would decline when the company become insolvent – when liability exceed asset of the company. This ratio is not considered based on pure fundamental because it computes with the company's market value. **Market capitalization indicates the level of confidence the company gives to the market. A higher-level ratio indicates that the company has a higher chance to sustain when there is an economic downturn.**
+
+### Sales / Total Assets (X5=S/TA) 
+This ratio is also known as ==asset turnover.== **It indicates how effective the company uses a single dollar of asset to generate sales.** Sales are the amount earned without considering cost, interest and tax. When this ratio is high, it indicates that with the amount of assets, the company is able to expand their market share. If the company with low asset turnover is not using proper strategy to improve their sales, they may not have a promising future.
+
+___
+
+
+https://www.aaii.com/journal/article/using-the-z-score-to-assess-the-risk-of-bankruptcy
+
+
+### Z Prime Score (Altman)
+The original Z-Score used five financial ratios to calculate a single score. This score indicated the likelihood of a company going bankrupt or having significant financial distress.
+
+Z-Score = (1.2 × A) + (1.4 × B) + (3.3 × C) + (0.6 × D) + (1.0 × E)
+
+Where: 
+  
+A = working capital ÷ total assets
+B = retained earnings ÷ total assets
+C = earnings before interest & taxes ÷ total assets
+D = market value of equity ÷ total liabilities
+E = sales ÷ total assets (measured in number of times, not percentages)
+  
+When analyzing the Z-Score of a company, the lower the value, the higher the odds that the company is headed toward bankruptcy.
+>The ranges for a firm’s Z-Score are:
+Below 1.8 is distress zone—indicates a firm is headed for bankruptcy
+Above 3.0 is “safe” zone—indicates a firm is unlikely to enter bankruptcy
+Between 1.8 and 3.0 is a statistical “gray area”
+
+### The Z Double Prime Score
+
+The Z double prime (Z″) was originally created for emerging market companies, but works very well for U.S. companies across a variety of sectors and industries (except for financial firms). **It excludes [[asset turnover]] (sales ÷ total assets), because the ratio is not comparable across sectors and countries.**
+>Z Double Prime = 3.25 + (6.56 × A) + (3.26 × B) + (6.72 × C) + (1.05 × D)
+
+Where:
+3.25 is a constant so that a score below zero would be in default
+A = working capital ÷ total assets
+B = retained earnings ÷ total assets
+C = earnings before interest & taxes ÷ total assets
+D = **book** value of equity ÷ total liabilities
+
+>Note that RK uses market cap instead of book value as the final variable
+
+The first variable, working capital to total assets, is a measure of liquidity. It proved to be more stable and predictive than the current ratio and the quick ratio, which is more well-known. Indeed, the current ratio and, to some extent, any liquidity ratio, can be a misleading indicator. ==This is because as a firm approaches bankruptcy, their current assets are bloated due to the fact that they cannot collect on their receivables or they have too much inventory that they can’t sell. So the current ratio sometimes actually goes up rather than down as bankruptcy approaches. By itself, the ratio of working capital to assets can be a misleading indicator.== But we found it to be helpful in just about all our models, though not as helpful as some of the other indicators.
+
+The ranges for a firm’s **Z double** prime score are:
+>- Below 1.1 indicates a firm is headed for financial distress
+>- Between 1.1 and 2.6 is a statistical “gray area” (errors were made)
+>- Above 2.6 indicates a firm is unlikely to enter bankruptcy
+
+***
+
+First four metrics are favored
+S/p
+Ebitda/ev 
+Tb/p
+b/p
+
+
+
+
