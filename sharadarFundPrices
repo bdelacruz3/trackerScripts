@@ -1,0 +1,66 @@
+function getSharadarPrice() {
+    const api_key = "YOUR_API_KEY";
+  
+    // open sheet named "fundies"
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("fundies");
+  
+    // define function to check if a date is a business day
+    function isBusinessDay(date) {
+      // check if the date is a weekend
+      if (date.getDay() === 0 || date.getDay() === 6) {
+        return false;
+      }
+      // check if the date is a holiday (add your own holiday dates as needed)
+      var holidays = [
+        "2023-01-01", // New Year's Day
+        "2023-01-16", // Martin Luther King Jr. Day
+        "2023-02-20", // Presidents' Day
+        "2023-05-29", // Memorial Day
+        "2023-07-04", // Independence Day
+        "2023-09-04", // Labor Day
+        "2023-11-23", // Thanksgiving Day
+        "2023-12-25"  // Christmas Day
+      ];
+      var formattedDate = Utilities.formatDate(date, "CST", "yyyy-MM-dd");
+      if (holidays.indexOf(formattedDate) !== -1) {
+        return false;
+      }
+      return true;
+    }
+    
+    // get current time and day of week
+    var now = new Date();
+    var dayOfWeek = now.getDay();
+    var hour = now.getHours();
+    var minute = now.getMinutes();
+  
+    // only run the script on weekdays at 16:10 **4:15PM**
+    if (dayOfWeek >= 1 && dayOfWeek <= 5 && hour === 16 && minute === 10) {
+  
+      // get yesterday's prices
+      var yesterday = new Date();
+      yesterday.setTime(yesterday.valueOf() - 1 * 24 * 60 * 60 * 1000);
+      while (!isBusinessDay(yesterday)) {
+        yesterday.setTime(yesterday.valueOf() - 1 * 24 * 60 * 60 * 1000);
+      }
+      var date = Utilities.formatDate(yesterday, "CST", "yyyy-MM-dd");
+      var columnsTickerClose = "&qopts.columns=date,ticker,close";
+      var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SFP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+      var response = UrlFetchApp.fetch(url);
+      var csv = response.getContentText();
+      var data = Utilities.parseCsv(csv);
+      sheet.getRange(1, 4, data.length, data[0].length).setValues(data);
+  
+      // get today's prices
+      var today = new Date();
+      while (!isBusinessDay(today)) {
+        today.setTime(today.valueOf() + 1 * 24 * 60 * 60 * 1000);
+      }
+      var date = Utilities.formatDate(today, "CST", "yyyy-MM-dd");
+      var columnsTickerClose = "&qopts.columns=date,ticker,close";
+      var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SFP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+      var response = UrlFetchApp.fetch(url);
+      var csv = response.getContentText();
+      var data = Utilities.parseCsv(csv);
+      sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+    }}
