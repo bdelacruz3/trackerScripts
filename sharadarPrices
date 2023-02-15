@@ -4,76 +4,118 @@
 // dates will be in the format YYYY-MM-DD and imported from a cell in the sheet
 
 function getSharadarPrice() {
-// Open sheet named "prices"
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("prices");
-    
-// Clear the current data in the sheet
-    sheet.clearContents();
+  const api_key = "YOUR_API_KEY";
 
-// Get yesterday's prices and set values starting in column 4
+    // open sheet named "prices"
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("prices");
+  
+    // define function to check if a date is a business day
+    function isBusinessDay(date) {
+      // check if the date is a weekend
+      if (date.getDay() === 0 || date.getDay() === 6) {
+        return false;
+      }
+      // check if the date is a holiday (add your own holiday dates as needed)
+      var holidays = [
+        "2023-01-01", // New Year's Day
+        "2023-01-16", // Martin Luther King Jr. Day
+        "2023-02-20", // Presidents' Day
+        "2023-05-29", // Memorial Day
+        "2023-07-04", // Independence Day
+        "2023-09-04", // Labor Day
+        "2023-11-23", // Thanksgiving Day
+        "2023-12-25"  // Christmas Day
+      ];
+      var formattedDate = Utilities.formatDate(date, "CST", "yyyy-MM-dd");
+      if (holidays.indexOf(formattedDate) !== -1) {
+        return false;
+      }
+      return true;
+    }
+    
+    // get yesterday's prices
     var yesterday = new Date();
-        yesterday.setTime(yesterday.valueOf() - 1 * 24 * 60 * 60 * 1000);
+    yesterday.setTime(yesterday.valueOf() - 1 * 24 * 60 * 60 * 1000);
+    while (!isBusinessDay(yesterday)) {
+      yesterday.setTime(yesterday.valueOf() - 1 * 24 * 60 * 60 * 1000);
+    }
     var date = Utilities.formatDate(yesterday, "CST", "yyyy-MM-dd");
     var columnsTickerClose = "&qopts.columns=date,ticker,close";
-    var api_key = "YOUR_API_KEY";
     var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
     var response = UrlFetchApp.fetch(url);
     var csv = response.getContentText();
     var data = Utilities.parseCsv(csv);
-    var sheet = SpreadsheetApp.getActiveSheet();
     sheet.getRange(1, 4, data.length, data[0].length).setValues(data);
-
-    // Get today's prices and set values starting in column 1
+  
+    // get today's prices
     var today = new Date();
+    while (!isBusinessDay(today)) {
+      today.setTime(today.valueOf() + 1 * 24 * 60 * 60 * 1000);
+    }
     var date = Utilities.formatDate(today, "CST", "yyyy-MM-dd");
     var columnsTickerClose = "&qopts.columns=date,ticker,close";
-    var api_key = "YOUR_API_KEY";
     var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
     var response = UrlFetchApp.fetch(url);
     var csv = response.getContentText();
     var data = Utilities.parseCsv(csv);
-    var sheet = SpreadsheetApp.getActiveSheet();
     sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+  
 
-    // get prrices from 5 working days ago and set values starting in column 7
-    var fiveDaysAgo = new Date();
-        fiveDaysAgo.setTime(fiveDaysAgo.valueOf() - 5 * 24 * 60 * 60 * 1000);
-    var date = Utilities.formatDate(fiveDaysAgo, "CST", "yyyy-MM-dd");
-    var columnsTickerClose = "&qopts.columns=date,ticker,close";
-    var api_key = "YOUR_API_KEY";
-    var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
-    var response = UrlFetchApp.fetch(url);
-    var csv = response.getContentText();
-    var data = Utilities.parseCsv(csv);
-    var sheet = SpreadsheetApp.getActiveSheet();
-    sheet.getRange(1, 7, data.length, data[0].length).setValues(data);
+ // get prices from 5 business days ago
+var fiveDaysAgo = new Date();
+while (!isBusinessDay(fiveDaysAgo)) {
+  fiveDaysAgo.setTime(fiveDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+}
+for (var i = 0; i < 4; i++) {
+  fiveDaysAgo.setTime(fiveDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+  while (!isBusinessDay(fiveDaysAgo)) {
+    fiveDaysAgo.setTime(fiveDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+  }
+}
+var date = Utilities.formatDate(fiveDaysAgo, "CST", "yyyy-MM-dd");
+var columnsTickerClose = "&qopts.columns=date,ticker,close";
+var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+var response = UrlFetchApp.fetch(url);
+var csv = response.getContentText();
+var data = Utilities.parseCsv(csv);
+sheet.getRange(1, 7, data.length, data[0].length).setValues(data);
 
-    // get prrices from 20 working days ago and set values starting in column 10
-    var twentyDaysAgo = new Date();
-        twentyDaysAgo.setTime(twentyDaysAgo.valueOf() - 20 * 24 * 60 * 60 * 1000);
+
+  // get prices from 20 business days ago
+  var twentyDaysAgo = new Date();
+  while (!isBusinessDay(twentyDaysAgo)) {
+    twentyDaysAgo.setTime(twentyDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+}
+for (var i = 0; i < 15; i++) {
+  twentyDaysAgo.setTime(twentyDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+  while (!isBusinessDay(twentyDaysAgo)) {
+    twentyDaysAgo.setTime(twentyDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+  }
     var date = Utilities.formatDate(twentyDaysAgo, "CST", "yyyy-MM-dd");
     var columnsTickerClose = "&qopts.columns=date,ticker,close";
-    var api_key = "YOUR_API_KEY";
     var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
     var response = UrlFetchApp.fetch(url);
     var csv = response.getContentText();
     var data = Utilities.parseCsv(csv);
-    var sheet = SpreadsheetApp.getActiveSheet();
     sheet.getRange(1, 10, data.length, data[0].length).setValues(data);
+}    
 
-    // get prrices from 80 working days ago and set values starting in column 13
+    // get prices from 80 business days ago
     var eightyDaysAgo = new Date();
-        eightyDaysAgo.setTime(eightyDaysAgo.valueOf() - 80 * 24 * 60 * 60 * 1000);
+    while (!isBusinessDay(eightyDaysAgo)) {
+      eightyDaysAgo.setTime(eightyDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+    } 
+    for (var i = 0; i < 60; i++) {
+      eightyDaysAgo.setTime(eightyDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+      while (!isBusinessDay(eightyDaysAgo)) {
+        eightyDaysAgo.setTime(eightyDaysAgo.valueOf() - 1 * 24 * 60 * 60 * 1000);
+      }
+    }
     var date = Utilities.formatDate(eightyDaysAgo, "CST", "yyyy-MM-dd");
     var columnsTickerClose = "&qopts.columns=date,ticker,close";
-    var api_key = "YOUR_API_KEY";
     var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
     var response = UrlFetchApp.fetch(url);
     var csv = response.getContentText();
     var data = Utilities.parseCsv(csv);
-    //var sheet = SpreadsheetApp.getActiveSheet();
     sheet.getRange(1, 13, data.length, data[0].length).setValues(data);
-
-
-    }
-
+}
