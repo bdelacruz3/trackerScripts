@@ -1,7 +1,7 @@
 function myFunction() {
+  const api_key = "API_KEY";
   let holidays = [
       "2023-01-01", // New Year's Day
-      "2023-02-16", // New Year's Day
       "2023-01-16", // Martin Luther King Jr. Day
       "2023-02-20", // Presidents' Day
       "2023-05-29", // Memorial Day
@@ -65,11 +65,11 @@ yesterday = Utilities.formatDate(yesterday, "GMT", "yyyy-MM-dd");
 fiveDaysAgo = Utilities.formatDate(fiveDaysAgo, "GMT", "yyyy-MM-dd");
 twentyDaysAgo = Utilities.formatDate(twentyDaysAgo, "GMT", "yyyy-MM-dd");
 
-const api_key = "YOUR_API_KEY";
-let columnsTickerClose = "&qopts.columns=date,ticker,close";
+
+let columnsTickerClose = "&qopts.columns=ticker,close";
 
 function getPriceYesterday(date){
-  let url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "& api_key=" + api_key;
+  let url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
   Logger.log(url)
   let response = UrlFetchApp.fetch(url);
   let csv = response.getContentText();
