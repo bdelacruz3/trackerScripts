@@ -1,5 +1,6 @@
-function myFunction() {
-  const api_key = "API_KEY";
+
+function getNasdaqFundPrices() {
+  const api_key = "YOUR_API_KEY";
   let holidays = [
       "2023-01-01", // New Year's Day
       "2023-01-16", // Martin Luther King Jr. Day
@@ -26,11 +27,11 @@ function myFunction() {
 
 function isBusinessDay(x) {
     if (x.getDay() === 0 || x.getDay() === 6) {
-      Logger.log(x + " Its weekend")
+      Logger.log(x + " IS weekend")
       return false
     } 
     else {
-      Logger.log(x + " is business day")
+      Logger.log(x + " IS business day")
       return true
     }
   }
@@ -44,51 +45,45 @@ function holidayMoveDate (date){
     } 
   }
 let date = new Date()
-let today = new Date(date+(21600000)) //adding time to convert to CST
+let today = new Date(date-(21600000)) //adding time to convert to CST
 
 weekendMoveDate(today)
 holidayMoveDate(today)
 
 let yesterday = new Date((today-(86400000))) // subtracting 1day
-let fiveDaysAgo = new Date((today-(86400000*5)))
-let twentyDaysAgo = new Date((today-(86400000*20)))
+
 
 weekendMoveDate(yesterday)
 holidayMoveDate(yesterday)
-weekendMoveDate(fiveDaysAgo)
-holidayMoveDate(fiveDaysAgo)
-weekendMoveDate(twentyDaysAgo)
-holidayMoveDate(twentyDaysAgo)
+
 
 today = Utilities.formatDate(today, "GMT", "yyyy-MM-dd");
 yesterday = Utilities.formatDate(yesterday, "GMT", "yyyy-MM-dd");
-fiveDaysAgo = Utilities.formatDate(fiveDaysAgo, "GMT", "yyyy-MM-dd");
-twentyDaysAgo = Utilities.formatDate(twentyDaysAgo, "GMT", "yyyy-MM-dd");
 
 
-let columnsTickerClose = "&qopts.columns=ticker,close";
+let columnsTickerClose = "&qopts.columns=date,ticker,closeadj";
 
 function getPriceYesterday(date){
-  let url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+  let url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SFP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
   Logger.log(url)
   let response = UrlFetchApp.fetch(url);
   let csv = response.getContentText();
   let data = Utilities.parseCsv(csv);
-  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("prices");
+  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("fundies");
   sheet.getRange(1, 4, data.length, data[0].length).setValues(data);
   }
 
   function getPriceToday(date){
-  let url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
+  let url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/SFP.csv?date=" + date + columnsTickerClose + "&api_key=" + api_key;
   Logger.log(url)
   let response = UrlFetchApp.fetch(url);
   let csv = response.getContentText();
   let data = Utilities.parseCsv(csv);
-  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("prices");
+  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("fundies");
   sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
   }
-
-getPriceYesterday(yesterday)
+    
 getPriceToday(today)
+getPriceYesterday(yesterday)
 
 }
