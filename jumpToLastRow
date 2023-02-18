@@ -1,0 +1,18 @@
+// Jumps to last row in the buy list
+// Credit to Scaffmeister
+
+function jumpLastrow(){
+  lastRowOfCol(115); //Enter the column number you want to jump to
+}
+function lastRowOfCol(column){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
+  var total = sheet.getMaxRows();
+  var values = SpreadsheetApp.getActiveSheet().getRange(1,column,total).getValues();
+  var range = sheet.getRange("GT1"); //adjust cell value if needed
+  sheet.setActiveSelection(range);
+  var values = SpreadsheetApp.getActiveSheet().getRange(1,column,total).getValues();
+  for(var i=total-1;values[i]=="" && i>0; i--){}
+  last = sheet.getRange(i+2,column);
+  sheet.setActiveSelection(last);
+}
