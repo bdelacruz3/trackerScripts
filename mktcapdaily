@@ -1,34 +1,87 @@
 // Download Market Cap data from Sharadar
 // Get CSV data from Sharadar Quandle Nasdaq for a specific date into google sheets via google apps script
-// https://data.nasdaq.com/api/v3/datatables/SHARADAR/DAILY.csv?date=2023-02-07&qopts.columns=ticker,marketcap&api_key=YOUR_API_KEY
+// https://data.nasdaq.com/api/v3/datatables/SHARADAR/DAILY.csv?date=2023-02-13&qopts.columns=ticker,marketcap&api_key=YOUR_API_KEY
+
 function getSharadarMarketCap() {
-    // Replace "SHEET_ID" with the ID of the Google Sheet you want to write to
-    var sheetId = "YOUR_SHEET_ID";
-    
-    // Replace "SHEET_NAME" with the name of the sheet in the Google Sheet you want to write to
-    var sheetName = "mktcap";
-    
-    // Replace "URL" with the URL of the CSV file in Sharadar
-    var csvUrl = "URL";
-    
-    // Get the Google Sheet with the specified ID
-    var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
-    
-    // Clear the current data in the sheet
-    sheet.clearContents();
-    
-    
-    
-        var today = new Date();
-        var date = Utilities.formatDate(today, "GMT", "yyyy-MM-dd");
-        var columnsTickerMarketCap = "&qopts.columns=date,ticker,marketcap";
-    
-         var api_key = "YOUR_API_KEY";
-         var url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/DAILY.csv?date=" + date + columnsTickerMarketCap + "&api_key=" + api_key;
-         var response = UrlFetchApp.fetch(url);
-         var csv = response.getContentText();
-         var data = Utilities.parseCsv(csv);
-         var sheet = SpreadsheetApp.getActiveSheet();
-         sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
-            Logger.log(data);
+// Replace "SHEET_ID" with the ID of the Google Sheet you want to write to
+var sheetId = "SHEET_ID";
+// Replace "SHEET_NAME" with the name of the sheet in the Google Sheet you want to write to
+const sheetName = "mktcap";
+// Replace "URL" with the URL of the CSV file in Sharadar
+var csvUrl = "URL";
+// Get the Google Sheet with the specified ID
+var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName)
+// Clear the current data in the sheet
+sheet.clearContents();
+
+  const api_key = "YOUR_API_KEY";
+  let holidays = [
+      "2023-01-01", // New Year's Day
+      "2023-01-16", // Martin Luther King Jr. Day
+      "2023-02-20", // Presidents' Day
+      "2023-05-29", // Memorial Day
+      "2023-07-04", // Independence Day
+      "2023-09-04", // Labor Day
+      "2023-11-23", // Thanksgiving Day
+      "2023-12-25"  // Christmas Day
+    ]
+
+  function isHoliday(x){
+    x = Utilities.formatDate(x, "GMT", "yyyy-MM-dd")
+    let holidayId = holidays.indexOf(x)
+    if(holidayId == -1){
+      Logger.log(x + " NOT Holiday")
+      return false
     }
+    else{
+      Logger.log(x + " IS Holiday")
+      return true
+    }
+  }
+
+function isBusinessDay(x) {
+    if (x.getDay() === 0 || x.getDay() === 6) {
+      Logger.log(x + " IS weekend")
+      return false
+    } 
+    else {
+      Logger.log(x + " IS business day")
+      return true
+    }
+  }
+function weekendMoveDate (date){
+  while (!isBusinessDay(date)) {
+    date.setTime(date.valueOf() - 86400000)
+}}
+function holidayMoveDate (date){
+  while (!!isHoliday(date)) {
+    date.setTime(date.valueOf() - 86400000)
+    } 
+  }
+let date = new Date()
+let today = new Date(date-(21600000)) //adding time to convert to CST
+
+weekendMoveDate(today)
+holidayMoveDate(today)
+
+
+today = Utilities.formatDate(today, "GMT", "yyyy-MM-dd");
+
+
+let columnsTickerMarketCap = "&qopts.columns=date,ticker,marketcap";
+
+function getMarketCap(date){
+  let url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/DAILY.csv?date=" + date + columnsTickerMarketCap + "&api_key=" + api_key;
+  Logger.log(url)
+  let response = UrlFetchApp.fetch(url);
+  let csv = response.getContentText();
+  let data = Utilities.parseCsv(csv);
+  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mktcap");
+  sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+        Logger.log(data);
+  }
+
+getMarketCap(today)
+
+
+}
