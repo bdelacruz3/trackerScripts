@@ -1,0 +1,93 @@
+# Co-written by GitHub copilot, Kelly Luu, and ChatGPT
+
+from datetime import date
+import nasdaqdatalink
+nasdaqdatalink.ApiConfig.api_key = 'enter_your_api_key'
+import numpy as np
+import pandas as pd
+import df2gspread
+import logging
+
+# get data from quandl nasdaq datalink using a one year date range from today
+date = date.today()
+start_range = date
+end_range = date.replace(year=date.year - 1)
+
+# Get tables from sharadar using a one year interval with the dimension filter of the most recent twelve months (MRT)
+nasdaqdatalink = nasdaqdatalink.get_table('SHARADAR/SF1', calendardate={'gte':end_range,'lte':start_range}, dimension='MRT', paginate=True)
+
+from pandas.io.formats.format import stringify_path
+from numpy.core.fromnumeric import shape
+# Create a dataframe
+df = pd.DataFrame(nasdaqdatalink)
+
+
+# Only select the columns that are needed (ticker, dimension, revenueusd, datekey, sharesbas	,ebitdausd,	ev,	dps,	cashnequsd,	debtusd,	debtc,	epsusd,	bvps,	tbvps,	intexp,	ebitusd,	ncfo,	ncfi,	ncff,	capex,	assetsc,	investmentsc,	inventory,	receivables,	liabilitiesc,	liabilitiesnc,	liabilities,	assetsnc,	assets,	retearn,	intangibles,	grossmargin,	netmargin,	ebitdamargin)
+df = df[['ticker', 'dimension', 'revenueusd', 'datekey', 'sharesbas', 'ebitdausd', 'ev', 'dps', 'cashnequsd', 'debtusd', 'debtc', 'epsusd', 'bvps', 'tbvps', 'intexp', 'ebitusd', 'ncfo', 'ncfi', 'ncff', 'capex', 'assetsc', 'investmentsc', 'inventory', 'receivables', 'liabilitiesc', 'liabilitiesnc', 'liabilities', 'assetsnc', 'assets', 'retearn', 'intangibles', 'grossmargin', 'netmargin', 'ebitdamargin']]
+
+# Remove duplicate rows for the same ticker. Keep only the most recent datekey
+df_deduped = df.sort_values(by=['ticker'], ascending=False).groupby('ticker').head(1)
+
+# Convert column 'datekey' to a string
+# If not converted, it will create a 3rd dimension (something like that... I dunno)
+df_deduped['datekey'] = df_deduped['datekey'].astype(str)
+
+# Keep header of df_deduped dataframe
+header = df_deduped.columns.values.tolist()
+
+# Output is a dataframe as oppose to a table or list
+df_deduped
+
+# Replace all NaN values with 0
+df_deduped.fillna(0, inplace=True)
+
+# Convert the df_deduped dataframe to a list
+df_deduped = df_deduped.values.tolist()
+
+# get information about the about the new list of lists
+print(len(df_deduped))
+
+from os import sep
+from google.colab import auth
+auth.authenticate_user()
+import numpy as np
+import gspread
+import df2gspread as d2g
+from google.auth import default
+
+creds, _ = default()
+gc = gspread.authorize(creds)
+
+# Authenticate and create a client
+auth.authenticate_user()
+
+print('Warming up ...')
+
+
+# here lie random settings you can update
+verbose = False # update to True if you want a detailed description of what your script is doing
+
+# Create a new Google Sheets document
+doc = gc.open('MRT Deduped')
+
+# Clear the existing values in the worksheet (optional)
+worksheet.clear()
+
+# Select the first sheet of the new document
+worksheet = doc.get_worksheet(0)
+
+print([df_deduped][0][0:5])
+worksheet.update('a1',[header]+[df_deduped][0])
+
+print('done son')
+
+
+
+
+
+
+
+
+
+
+
