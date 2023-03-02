@@ -1,0 +1,132 @@
+from datetime import date
+import nasdaqdatalink
+nasdaqdatalink.ApiConfig.api_key = 'your_api_key'
+import numpy as np
+import pandas as pd
+import df2gspread
+import logging
+
+# get data from quandl nasdaq datalink using a THREE year date range from today
+date = date.today()
+start_range3 = date.replace(year=date.year - 2)
+end_range3 = date.replace(year=date.year - 3)
+print(end_range3)
+print(start_range3)
+
+# Get tables from sharadar using a one year interval with the dimension filter of the most recent twelve months (MRT)
+nasdaqdatalink3 = nasdaqdatalink.get_table('SHARADAR/SF1', calendardate={'gte':end_range3,'lte':start_range3}, dimension='MRT', paginate=True)
+
+from pandas.io.formats.format import stringify_path
+from numpy.core.fromnumeric import shape
+
+# Create a dataframe
+df3 = pd.DataFrame(nasdaqdatalink3)
+
+# Keep most recent observation from 3 years ago
+# Remove duplicate rows for the same ticker. Keep only the most recent datekey
+df_deduped3 = df3.sort_values(by=['ticker'], ascending=False).groupby('ticker').head(1)
+df_deduped3
+
+# get data from quandl nasdaq datalink using a TWO year date range from today
+date = date.today()
+start_range2 = date.replace(year=date.year - 1)
+end_range2 = date.replace(year=date.year - 2)
+print(end_range2)
+print(start_range2)
+
+# Get tables from sharadar using a one year interval with the dimension filter of the most recent twelve months (MRT)
+nasdaqdatalink2 = nasdaqdatalink.get_table('SHARADAR/SF1', calendardate={'gte':end_range2,'lte':start_range2}, dimension='MRT', paginate=True)
+
+from pandas.io.formats.format import stringify_path
+from numpy.core.fromnumeric import shape
+# Create a dataframe
+df2 = pd.DataFrame(nasdaqdatalink2)
+
+# Keep most recent observation from 3 years ago
+# Remove duplicate rows for the same ticker. Keep only the most recent datekey
+df_deduped2 = df2.sort_values(by=['ticker'], ascending=False).groupby('ticker').head(1)
+df_deduped2
+
+# get data from quandl nasdaq datalink using a one year date range from today
+date = date.today()
+start_range = date.replace(year=date.year)
+end_range = date.replace(year=date.year - 1)
+print(start_range)
+print(end_range)
+
+# Get tables from sharadar using a one year interval with the dimension filter of the most recent twelve months (MRT)
+nasdaqdatalink = nasdaqdatalink.get_table('SHARADAR/SF1', calendardate={'gte':end_range,'lte':start_range}, dimension='MRT', paginate=True)
+
+from pandas.io.formats.format import stringify_path
+from numpy.core.fromnumeric import shape
+# Create a dataframe
+df = pd.DataFrame(nasdaqdatalink)
+
+# Keep most recent observation from ONE years ago
+# Remove duplicate rows for the same ticker. Keep only the most recent datekey
+df_deduped = df.sort_values(by=['ticker'], ascending=False).groupby('ticker').head(1)
+df_deduped
+
+# COMBINE ALL DATAFRAMES INTO ONE
+# Combine 3 dataframes into one (df_deduped, df_defuped2, df_deduped3)
+df_combined = pd.concat([df_deduped, df_deduped2, df_deduped3])
+df_combined
+
+#sort the dataframe by ticker and datekey in descending order
+df_combined.sort_values(by=['ticker', 'datekey'], ascending=False, inplace=True)
+df_combined
+
+# For each ticker, average the values of the column called 'ncfo'
+# Add the results to a new column called 'ncfo_avg3' at the end of the dataframe
+df_combined['ncfo_avg3'] = df_combined.groupby('ticker')['ncfo'].transform('mean')
+
+# Keep only the first row for each ticker
+df_combined = df_combined.groupby('ticker').head(1)
+df_combined
+
+df = df_combined
+
+# Keep header of df_deduped dataframe
+header = df_combined.columns.values.tolist()
+print(header) # To check column names
+
+# Convert 'datekey', 'calendardate', 'reportperiod', 'lastupdated' columns to a string
+df['datekey'] = df['datekey'].astype(str)
+df['calendardate'] = df['calendardate'].astype(str)
+df['reportperiod'] = df['reportperiod'].astype(str)
+df['lastupdated'] = df['lastupdated'].astype(str)
+
+# Convert df values to a list
+df_list = df.values.tolist()
+
+# get information about the about the new list of lists
+print(len(df_list))
+
+from os import sep
+from google.colab import auth
+auth.authenticate_user()
+import numpy as np
+import gspread
+import df2gspread as d2g
+from google.auth import default
+creds, _ = default()
+gc = gspread.authorize(creds)
+
+# Authenticate and create a client
+auth.authenticate_user()
+print('Warming up ...')
+
+# here lie random settings you can update
+verbose = False # update to True if you want a detailed description of what your script is doing
+
+# Create a new Google Sheets document
+doc = gc.open('MRT CFO Avg3')
+
+# Select the first sheet of the new document
+worksheet = doc.get_worksheet(0)
+
+# Clear the existing values in the worksheet (optional)
+worksheet.clear()
+
+print([df][0][0:5])
+worksheet.update('a1',[header]+[df_list][0])
