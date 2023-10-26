@@ -1,0 +1,180 @@
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import csv
+from concurrent.futures import ThreadPoolExecutor
+import logging
+from datetime import datetime, timedelta
+from df2gspread import df2gspread as d2g
+from oauth2client.service_account import ServiceAccountCredentials
+import pandas as pd
+import requests
+import gspread
+
+def get_data_for_month(year, month):
+    # Create a logger instance with the name "my_logger"
+    my_logger = logging.getLogger("my_logger")
+
+    # Set the log level to INFO (other options: WARNING, ERROR, etc.)
+    my_logger.setLevel(logging.WARNING)
+
+    # Create a FileHandler to write the messages to a file
+    file_handler = logging.FileHandler("logs.txt")
+
+    # Set the log level for the FileHandler to INFO
+    file_handler.setLevel(logging.WARNING)
+
+    # Add the FileHandler to the logger instance
+    my_logger.addHandler(file_handler)
+
+    # Set the start date and end date for the given month
+    start_date = datetime(year, month, 1).strftime('%m/%d/%Y')
+    end_date = (datetime(year, month, 1) + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+    end_date = end_date.strftime('%m/%d/%Y')
+
+    # Print which month is currently being processed
+    print(f"processing month: {month}-{year}")
+
+    # Initialize an empty set to store the data for the month
+    data = set()
+
+    # Make a request to the website
+    url = f'http://openinsider.com/screener?s=&o=&pl=&ph=&ll=&lh=&fd=-1&fdr={start_date}+-+{end_date}&td=0&tdr=&fdlyl=&fdlyh=&daysago=&xp=1&xs=1&vl=&vh=&ocl=&och=&sic1=-1&sicl=100&sich=9999&grp=0&nfl=&nfh=&nil=&nih=&nol=&noh=&v2l=&v2h=&oc2l=&oc2h=&sortcol=0&cnt=5000&page=1'
+    response = requests.get(url)
+
+    # Parse the HTML response
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Find all the rows in the table on the website
+    try:
+        rows = soup.find('table', {'class': 'tinytable'}).find('tbody').findAll('tr')
+    except:
+        print("Error! Skipping")
+          # If there is an error, log which URL failed for further research and skip to the next page
+        my_logger.error("This URL was not successful: {}".format(url))
+        return
+    
+    # Loop through each row and extract the insider transaction data
+    for row in rows:
+        if not row.findAll('td'):
+            continue
+        insider_data = {}
+        insider_data['transaction_date'] = row.findAll('td')[1].find('a').text.strip()
+        insider_data['trade_date'] = row.findAll('td')[2].text.strip()
+        insider_data['ticker'] = row.findAll('td')[3].find('a').text.strip()
+        insider_data['company_name'] = row.findAll('td')[4].find('a').text.strip()
+        insider_data['owner_name'] = row.findAll('td')[5].find('a').text.strip()
+        insider_data['Title'] = row.findAll('td')[6].text.strip()
+        insider_data['transaction_type'] = row.findAll('td')[7].text.strip()
+        insider_data['last_price'] = row.findAll('td')[8].text.strip()
+        insider_data['Qty'] = row.findAll('td')[9].text.strip()
+        insider_data['shares_held'] = row.findAll('td')[10].text.strip()
+        insider_data['Owned'] = row.findAll('td')[11].text.strip()
+        insider_data['Value'] = row.findAll('td')[12].text.strip()
+        # Add the Data to the Stack
+        data.add(tuple(insider_data.values()))
+    return data
+
+
+def get_openinsider_data():
+
+    # go through all dates
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        all_data = []
+        current_year = datetime.now().year
+        current_month = datetime.now().month
+         # iterate through years and months
+        for year in range(2022, current_year + 1):
+            start_month = 1
+            end_month = 12
+            # set start and end month for first and last year
+            # year is one year from current year
+            # start month is the same as current month
+            if year == 2022:
+                start_month = current_month
+            if year == current_year:
+                end_month = current_month
+            for month in range(start_month, end_month + 1):
+                # get data for month with multi-threading
+                futures = [executor.submit(get_data_for_month, year, month)]
+                for future in futures:
+                    all_data.extend(future.result())
+                print(f"Done with {month}-{year}")
+
+        # set field names for CSV file
+        field_names = ['transaction_date','trade_date', 'ticker', 'company_name', 'owner_name', 'Title' ,'transaction_type', 'last_price', 'Qty', 'shares_held', 'Owned', 'Value']
+
+        # Open a CSV file for writing
+        with open('output_all_dates_monthly_ttm.csv', 'w', newline='') as f:
+            print("writing")
+            writer = csv.writer(f)
+
+            # Write the column names in the first line of the CSV file
+            writer.writerow(field_names)
+
+            # Write the values of each transaction to the CSV file
+            for transaction in all_data:
+                writer.writerow(transaction)
+                
+# execute the function
+get_openinsider_data()
+print("Completed Process.")
+
+# Read the csv file 
+read_file = pd.read_csv('output_all_dates_monthly_ttm.csv')
+read_file.to_csv('output_all_dates_monthly_ttm.csv', index=False, header=True)
+
+# Convert the csv file to a dataframe
+df = pd.DataFrame(read_file)
+
+# Drop rows if the column 'transaction_type' contains 'S - Sale' or 'S - Sale+OE'
+df = df[~df['transaction_type'].str.contains('S - Sale')]
+
+# Convert the 'transaction_date' column to a datetime object
+df['transaction_date'] = pd.to_datetime(df['transaction_date'])
+
+# Filter the dataframe to only include transactions from the last 12 months
+df = df[df['transaction_date'] >= (datetime.now() - timedelta(days=365))]
+print(df)
+
+# Save the dataframe to a csv file called 'output_filtered.csv'
+df.to_csv('output_filtered.csv', index=False, header=True)
+
+print("Uploading to Google Sheets...")
+
+# Upload to google sheets
+scope = ['https://spreadsheets.google.com/feeds']
+creds = ServiceAccountCredentials.from_json_keyfile_name('google-sheets-secrets.json', scope)
+gc = gspread.authorize(creds)
+
+
+# Read the csv file and upload to google sheets
+read_file = pd.read_csv('output_filtered.csv')
+read_file.to_csv('output_filtered.csv', index=False, header=True)
+
+# upload to prices google sheet
+sheet_key = 'SHEET_ID'
+gsheet = gc.open_by_key(sheet_key)
+d2g.upload(read_file, sheet_key, 'Raw', credentials=creds, row_names=False)
+
+# Sort the list in Google Sheets by ticker descending order do not include the header
+worksheet = gsheet.worksheet('Raw')
+worksheet.sort((1,'des'), range='A2:M20000')
+
+print('insider buying uploaded to google sheets')
+
+# open the worksheet and get the data
+worksheet = gsheet.worksheet('Raw')
+data = worksheet.get_all_values()
+
+# convert column 12 to floats
+for i in range(1, len(data)):
+    try:
+        data[i][11] = float(data[i][11])
+    except ValueError:
+        pass
+
+# update the worksheet with the modified data
+worksheet.update('A1', data)
+
+print("Upload Complete.")
