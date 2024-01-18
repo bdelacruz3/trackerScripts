@@ -1,0 +1,27 @@
+# get yesterday's stock data from nasdaq data link
+from datetime import date
+import nasdaqdatalink
+nasdaqdatalink.ApiConfig.api_key = 'YOUR_API_KEY'
+import pandas as pd
+
+# Get yesterday's date
+yesterday = date.today() - pd.Timedelta(days=1)
+yesterday = yesterday.strftime('%Y-%m-%d')
+# print(yesterday)
+print(yesterday)
+
+# Get today's date
+today = date.today()
+today = today.strftime('%Y-%m-%d')
+# print(today)
+print(today)
+
+
+# https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.csv?date=" + date + "&qopts.columns=ticker,close,date&api_key=" + api_key;
+
+# gte = yesterday, lte = today
+nasdaqdatalink.get_table('SHARADAR/SEP', date={'gte':yesterday,'lte':today}, paginate=True)
+
+# print table
+print(nasdaqdatalink.get_table('SHARADAR/SEP', date={'gte':yesterday,'lte':today}, paginate=True))
+
