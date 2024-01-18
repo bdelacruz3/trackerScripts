@@ -1,5 +1,5 @@
 # trackerScripts
-These are some of the Google App Scripts that I'm running to pull data from Sharadar (formerly Quandle).
+These are some of the Google App Scripts that I'm running to pull data from Sharadar (formerly Quandl).
 
 Would appreciate any feedback or if anyone notices any issues.
 
