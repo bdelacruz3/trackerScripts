@@ -10,6 +10,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import requests
 import gspread
+import logging
 
 def get_data_for_month(year, month):
     # Create a logger instance with the name "my_logger"
@@ -84,13 +85,13 @@ def get_openinsider_data():
         current_year = datetime.now().year
         current_month = datetime.now().month
          # iterate through years and months
-        for year in range(2022, current_year + 1):
+        for year in range(2023, current_year + 1):
             start_month = 1
             end_month = 12
             # set start and end month for first and last year
             # year is one year from current year
             # start month is the same as current month
-            if year == 2022:
+            if year == 2023:
                 start_month = current_month
             if year == current_year:
                 end_month = current_month
@@ -144,7 +145,7 @@ print("Uploading to Google Sheets...")
 
 # Upload to google sheets
 scope = ['https://spreadsheets.google.com/feeds']
-creds = ServiceAccountCredentials.from_json_keyfile_name('google-sheets-secrets.json', scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name('Tracker/google-sheets-secrets.json', scope)
 gc = gspread.authorize(creds)
 
 
@@ -153,7 +154,7 @@ read_file = pd.read_csv('output_filtered.csv')
 read_file.to_csv('output_filtered.csv', index=False, header=True)
 
 # upload to prices google sheet
-sheet_key = 'SHEET_ID'
+sheet_key = 'Google_Sheet_Key'
 gsheet = gc.open_by_key(sheet_key)
 d2g.upload(read_file, sheet_key, 'Raw', credentials=creds, row_names=False)
 
