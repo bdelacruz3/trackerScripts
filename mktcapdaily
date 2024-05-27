@@ -1,87 +1,71 @@
-// Download Market Cap data from Sharadar
-// Get CSV data from Sharadar Quandle Nasdaq for a specific date into google sheets via google apps script
-// https://data.nasdaq.com/api/v3/datatables/SHARADAR/DAILY.csv?date=2023-02-13&qopts.columns=ticker,marketcap&api_key=YOUR_API_KEY
+from datetime import date, timedelta
+import numpy as np
+import pandas as pd
+import requests
+import gspread
+from df2gspread import df2gspread as d2g
+from oauth2client.service_account import ServiceAccountCredentials
+import nasdaqdatalink
 
-function getSharadarMarketCap() {
-// Replace "SHEET_ID" with the ID of the Google Sheet you want to write to
-var sheetId = "SHEET_ID";
-// Replace "SHEET_NAME" with the name of the sheet in the Google Sheet you want to write to
-const sheetName = "mktcap";
-// Replace "URL" with the URL of the CSV file in Sharadar
-var csvUrl = "URL";
-// Get the Google Sheet with the specified ID
-var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName)
-// Clear the current data in the sheet
-sheet.clearContents();
+# Set the API key for accessing Sharadar data
+nasdaqdatalink.ApiConfig.api_key = 'YOUR_API_KEY'
 
-  const api_key = "YOUR_API_KEY";
-  let holidays = [
-      "2023-01-01", // New Year's Day
-      "2023-01-16", // Martin Luther King Jr. Day
-      "2023-02-20", // Presidents' Day
-      "2023-05-29", // Memorial Day
-      "2023-07-04", // Independence Day
-      "2023-09-04", // Labor Day
-      "2023-11-23", // Thanksgiving Day
-      "2023-12-25"  // Christmas Day
-    ]
+# Define holiday list
+holiday_list = [
+    date(2023, 6, 19), date(2023, 7, 4), date(2023, 9, 4), date(2023, 11, 23), 
+    date(2023, 12, 25), date(2024, 1, 1), date(2024, 1, 15), date(2024, 2, 19), 
+    date(2024, 3, 9), date(2024, 5, 27), date(2024, 7, 4), date(2024, 6, 19), 
+    date(2024, 9, 2), date(2024, 11, 28), date(2024, 12, 25)
+]
 
-  function isHoliday(x){
-    x = Utilities.formatDate(x, "GMT", "yyyy-MM-dd")
-    let holidayId = holidays.indexOf(x)
-    if(holidayId == -1){
-      Logger.log(x + " NOT Holiday")
-      return false
-    }
-    else{
-      Logger.log(x + " IS Holiday")
-      return true
-    }
-  }
+# Function to get the previous weekday's date
+def get_previous_weekday():
+    today = date.today()
+    delta = timedelta(days=1)
+    while today.weekday() >= 5 or today in holiday_list:
+        today -= delta
+    return today
 
-function isBusinessDay(x) {
-    if (x.getDay() === 0 || x.getDay() === 6) {
-      Logger.log(x + " IS weekend")
-      return false
-    } 
-    else {
-      Logger.log(x + " IS business day")
-      return true
-    }
-  }
-function weekendMoveDate (date){
-  while (!isBusinessDay(date)) {
-    date.setTime(date.valueOf() - 86400000)
-}}
-function holidayMoveDate (date){
-  while (!!isHoliday(date)) {
-    date.setTime(date.valueOf() - 86400000)
-    } 
-  }
-let date = new Date()
-let today = new Date(date-(21600000)) //adding time to convert to CST
+# Get the adjusted date
+adjusted_date = get_previous_weekday()
+# Print the adjusted date
+print('Adjusted date:', adjusted_date)
 
-weekendMoveDate(today)
-holidayMoveDate(today)
+# Fetch data from Sharadar for the adjusted date
+data = nasdaqdatalink.get_table('SHARADAR/DAILY', date={adjusted_date}, paginate=True)
 
+# Convert data to a DataFrame
+df = pd.DataFrame(data)
 
-today = Utilities.formatDate(today, "GMT", "yyyy-MM-dd");
+# Sort the DataFrame by ticker
+df.sort_values(by='ticker', inplace=True)
 
+# Keep only required columns
+df = df[['ticker', 'marketcap']]
 
-let columnsTickerMarketCap = "&qopts.columns=date,ticker,marketcap";
+# Print the DataFrame
+print(df)
 
-function getMarketCap(date){
-  let url = "https://data.nasdaq.com/api/v3/datatables/SHARADAR/DAILY.csv?date=" + date + columnsTickerMarketCap + "&api_key=" + api_key;
-  Logger.log(url)
-  let response = UrlFetchApp.fetch(url);
-  let csv = response.getContentText();
-  let data = Utilities.parseCsv(csv);
-  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mktcap");
-  sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
-        Logger.log(data);
-  }
+# Save DataFrame to a CSV file
+df.to_csv('daily_marketcap.csv', index=False)
 
-getMarketCap(today)
+# Convert DataFrame to list
+df_list = df.values.tolist()
 
+# Upload data to Google Sheets
+scope = ['https://spreadsheets.google.com/feeds']
+creds = ServiceAccountCredentials.from_json_keyfile_name('Tracker/google-sheets-secrets.json', scope)
+gc = gspread.authorize(creds)
 
-}
+# Read CSV file
+read_file = pd.read_csv('daily_marketcap.csv')
+
+# Upload to Google Sheets
+sheet_key = 'YOUR_SHEET_ID'
+d2g.upload(read_file, sheet_key, 'mktcap', credentials=creds, row_names=False)
+
+# Sort the data in Google Sheets
+worksheet = gc.open_by_key(sheet_key).worksheet('mktcap')
+worksheet.sort((1,'des'), range='A2:B8000')
+
+print('Daily marketcap uploaded to Google Sheets')
