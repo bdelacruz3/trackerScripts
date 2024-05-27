@@ -1,0 +1,84 @@
+from datetime import date, timedelta
+import numpy as np
+import pandas as pd
+import requests
+import gspread
+from df2gspread import df2gspread as d2g
+from oauth2client.service_account import ServiceAccountCredentials
+import nasdaqdatalink
+
+# Set the API key for accessing Sharadar data
+nasdaqdatalink.ApiConfig.api_key = 'YOUR_API_KEY'
+
+# holidays =   // Define the list of holidays
+# "2024-01-01", // New Year's Day
+# "2024-01-15", // Martin Luther King Jr. Day
+# "2024-02-19", // Presidents' Day
+# "2024-03-29", // Good Friday
+# "2024-05-27", // Memorial Day
+# "2024-07-04", // Independence Day
+# "2024-06-19", // Juneteenth
+# "2024-09-02", // Labor Day
+
+# Define holiday list
+holiday_list = [
+    date(2023, 6, 19), date(2023, 7, 4), date(2023, 9, 4), date(2023, 11, 23), 
+    date(2023, 12, 25), date(2024, 1, 1), date(2024, 1, 15), date(2024, 2, 19), 
+    date(2024, 3, 9), date(2024, 5, 27), date(2024, 7, 4), date(2024, 6, 19), 
+    date(2024, 9, 2), date(2024, 11, 28), date(2024, 12, 25)
+]
+
+# Get current date
+today = date.today()
+
+# Function to get the last weekday before a given date
+def last_weekday_before(given_date):
+    delta = timedelta(days=1)
+    while given_date.weekday() >= 5 or given_date in holiday_list:
+        given_date -= delta
+    return given_date
+
+# Adjust the date
+adjusted_date = last_weekday_before(today)
+
+# Print adjusted date
+print(adjusted_date)
+
+# Fetch data from Sharadar for the adjusted date
+data = nasdaqdatalink.get_table('SHARADAR/METRICS', date={adjusted_date}, paginate=True)
+
+# Convert data to a DataFrame
+df = pd.DataFrame(data)
+
+# Sort the DataFrame by ticker
+df.sort_values(by='ticker', inplace=True)
+
+# Keep only required columns
+df = df[['ticker', 'date', 'price', 'high52w', 'low52w']]
+
+# Print df
+print(df)
+
+# Save DataFrame to a CSV file
+df.to_csv('fiftyTwoWeekHighLow.csv', index=False)
+
+# Convert DataFrame to list
+df_list = df.values.tolist()
+
+# Upload data to Google Sheets
+scope = ['https://spreadsheets.google.com/feeds']
+creds = ServiceAccountCredentials.from_json_keyfile_name('Tracker/google-sheets-secrets.json', scope)
+gc = gspread.authorize(creds)
+
+# Read CSV file
+read_file = pd.read_csv('fiftyTwoWeekHighLow.csv')
+
+# Upload to Google Sheets
+sheet_key = 'GOOGLE_SHEET_ID'
+d2g.upload(read_file, sheet_key, '52highlow', credentials=creds, row_names=False)
+
+# Sort the data in Google Sheets
+worksheet = gc.open_by_key(sheet_key).worksheet('52highlow')
+worksheet.sort((1,'des'), range='A2:E12000')
+
+print('Fifty two week high low uploaded to Google Sheets')
