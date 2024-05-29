@@ -8,7 +8,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import nasdaqdatalink
 
 # Set the API key for accessing Sharadar data
-nasdaqdatalink.ApiConfig.api_key = 'U1PMQPw9katv6EJkmQmw'
+nasdaqdatalink.ApiConfig.api_key = 'YOUR_API_KEY'
 
 # Define holiday list
 holiday_list = [
@@ -70,7 +70,7 @@ gc = gspread.authorize(creds)
 read_file = pd.read_csv('fiftyTwoWeekHighLow.csv')
 
 # Upload to Google Sheets
-sheet_key = '1fiTzzo6PlDkBOlEAzUYlJNwujtP5xie71dFPocxwL9U'
+sheet_key = 'YOUR_API_KEY'
 d2g.upload(read_file, sheet_key, '52highlow', credentials=creds, row_names=False)
 
 # Sort the data in Google Sheets
