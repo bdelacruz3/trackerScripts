@@ -8,17 +8,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import nasdaqdatalink
 
 # Set the API key for accessing Sharadar data
-nasdaqdatalink.ApiConfig.api_key = 'YOUR_API_KEY'
-
-# holidays =   // Define the list of holidays
-# "2024-01-01", // New Year's Day
-# "2024-01-15", // Martin Luther King Jr. Day
-# "2024-02-19", // Presidents' Day
-# "2024-03-29", // Good Friday
-# "2024-05-27", // Memorial Day
-# "2024-07-04", // Independence Day
-# "2024-06-19", // Juneteenth
-# "2024-09-02", // Labor Day
+nasdaqdatalink.ApiConfig.api_key = 'U1PMQPw9katv6EJkmQmw'
 
 # Define holiday list
 holiday_list = [
@@ -50,6 +40,12 @@ data = nasdaqdatalink.get_table('SHARADAR/METRICS', date={adjusted_date}, pagina
 # Convert data to a DataFrame
 df = pd.DataFrame(data)
 
+# If data is empty, then fetch data for the previous day
+if df.empty:
+    adjusted_date = last_weekday_before(today - timedelta(days=1))
+    data = nasdaqdatalink.get_table('SHARADAR/METRICS', date={adjusted_date}, paginate=True)
+    df = pd.DataFrame(data)
+
 # Sort the DataFrame by ticker
 df.sort_values(by='ticker', inplace=True)
 
@@ -74,7 +70,7 @@ gc = gspread.authorize(creds)
 read_file = pd.read_csv('fiftyTwoWeekHighLow.csv')
 
 # Upload to Google Sheets
-sheet_key = 'GOOGLE_SHEET_ID'
+sheet_key = '1fiTzzo6PlDkBOlEAzUYlJNwujtP5xie71dFPocxwL9U'
 d2g.upload(read_file, sheet_key, '52highlow', credentials=creds, row_names=False)
 
 # Sort the data in Google Sheets
