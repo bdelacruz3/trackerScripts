@@ -1,3 +1,8 @@
+
+
+# Fetch data from Sharadar for the adjusted date
+# data = nasdaqdatalink.get_table('SHARADAR/DAILY', date={adjusted_date}, paginate=True)
+
 from datetime import date, timedelta
 import numpy as np
 import pandas as pd
@@ -18,18 +23,21 @@ holiday_list = [
     date(2024, 9, 2), date(2024, 11, 28), date(2024, 12, 25)
 ]
 
-# Function to get the previous weekday's date
-def get_previous_weekday():
-    today = date.today()
-    delta = timedelta(days=1)
-    while today.weekday() >= 5 or today in holiday_list:
-        today -= delta
-    return today
+# Get current date
+today = date.today()
 
-# Get the adjusted date
-adjusted_date = get_previous_weekday()
-# Print the adjusted date
-print('Adjusted date:', adjusted_date)
+# Function to get the last weekday before a given date
+def last_weekday_before(given_date):
+    delta = timedelta(days=1)
+    while given_date.weekday() >= 5 or given_date in holiday_list:
+        given_date -= delta
+    return given_date
+
+# Adjust the date
+adjusted_date = last_weekday_before(today)
+
+# Print adjusted date
+print(adjusted_date)
 
 # Fetch data from Sharadar for the adjusted date
 data = nasdaqdatalink.get_table('SHARADAR/DAILY', date={adjusted_date}, paginate=True)
@@ -37,13 +45,22 @@ data = nasdaqdatalink.get_table('SHARADAR/DAILY', date={adjusted_date}, paginate
 # Convert data to a DataFrame
 df = pd.DataFrame(data)
 
-# Sort the DataFrame by ticker
-df.sort_values(by='ticker', inplace=True)
+# If data is empty, then fetch data for the previous day
+if df.empty:
+    adjusted_date = last_weekday_before(today - timedelta(days=1))
+    data = nasdaqdatalink.get_table('SHARADAR/DAILY', date={adjusted_date}, paginate=True)
+    df = pd.DataFrame(data)
+
+# Convert data to a DataFrame
+df = pd.DataFrame(data)
+
+# Sort the DataFrame by ticker in descending order
+df = df.sort_values(by='ticker', ascending=False)
 
 # Keep only required columns
 df = df[['ticker', 'marketcap']]
 
-# Print the DataFrame
+# Print df
 print(df)
 
 # Save DataFrame to a CSV file
@@ -64,8 +81,5 @@ read_file = pd.read_csv('daily_marketcap.csv')
 sheet_key = 'YOUR_SHEET_ID'
 d2g.upload(read_file, sheet_key, 'mktcap', credentials=creds, row_names=False)
 
-# Sort the data in Google Sheets
-worksheet = gc.open_by_key(sheet_key).worksheet('mktcap')
-worksheet.sort((1,'des'), range='A2:B8000')
 
 print('Daily marketcap uploaded to Google Sheets')
