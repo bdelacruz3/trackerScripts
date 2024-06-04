@@ -78,7 +78,7 @@ gc = gspread.authorize(creds)
 read_file = pd.read_csv('daily_marketcap.csv')
 
 # Upload to Google Sheets
-sheet_key = 'YOUR_SHEET_ID'
+sheet_key = 'GOOGLE_SHEET_ID'
 d2g.upload(read_file, sheet_key, 'mktcap', credentials=creds, row_names=False)
 
 
