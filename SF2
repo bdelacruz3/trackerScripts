@@ -1,0 +1,72 @@
+from datetime import date as dt
+import nasdaqdatalink
+import pandas as pd
+import numpy as np
+import pandas as pd
+from df2gspread import df2gspread as d2g
+from oauth2client.service_account import ServiceAccountCredentials
+import pandas as pd
+import requests
+import gspread
+
+print("warming up...")
+# Set your API key
+nasdaqdatalink.ApiConfig.api_key = 'YOUR_API_KEY'
+
+# Get the date range for the last 12 months
+end_range = dt.today()
+start_range = end_range.replace(year=end_range.year - 1)
+
+# Fetch data from Sharadar/SF2 table for the last 12 months with securityadcode = 'NA'
+data = nasdaqdatalink.get_table('SHARADAR/SF2', 
+                                filingdate={'gte': start_range, 'lte': end_range}, 
+                                securityadcode='NA', 
+                                paginate=True)
+
+# Create a DataFrame from the fetched data
+df = pd.DataFrame(data)
+
+# Select only the relevant columns
+df_filtered = df[['ticker','issuername','ownername','officertitle','transactiondate','filingdate','transactioncode','transactionpricepershare','transactionshares','sharesownedbeforetransaction','sharesownedfollowingtransaction','transactionvalue','securityadcode']]
+
+# Save the DataFrame to a CSV file
+df_filtered.to_csv('insider_transactions_filtered.csv', index=False)
+
+# Only keep the rows where the transaction code is 'P' (Open market or private purchase of non-derivative or derivative security
+df_filtered = df_filtered[df_filtered['transactioncode'] == 'P']
+
+# If any value is NAN, replace it with 0
+df_filtered = df_filtered.fillna(0)
+
+# Convert columns 9,10,11, and 12 as float
+df_filtered['transactionshares'] = df_filtered['transactionshares'].astype(float)
+df_filtered['sharesownedbeforetransaction'] = df_filtered['sharesownedbeforetransaction'].astype(float)
+df_filtered['sharesownedfollowingtransaction'] = df_filtered['sharesownedfollowingtransaction'].astype(float)
+df_filtered['transactionvalue'] = df_filtered['transactionvalue'].astype(float)
+
+# Print the DataFrame to check the result
+print(df_filtered)
+
+# Convert the DataFrame to a CSV file
+df_filtered.to_csv('insider_transactions_filtered.csv', index=False)
+
+
+print('Insider Transactions data Acquired...')
+
+# Upload to google sheets
+scope = ['https://spreadsheets.google.com/feeds']
+creds = ServiceAccountCredentials.from_json_keyfile_name('Tracker/google-sheets-secrets.json', scope)
+gc = gspread.authorize(creds)
+
+# Read the csv file and upload to google sheets
+read_file = pd.read_csv('insider_transactions_filtered.csv')
+read_file.to_csv('insider_transactions_filtered.csv', index=None, header=True)
+print('Uploading to Google Sheets...')
+
+# upload to sheets
+# uploads to MRT from MAC - local tracker
+# Google App Script then copies the data to the Prices sheet ('GOOGLE_SHEET_KEY')
+sheet_key = 'GOOGLE_SHEET_KEY'
+gsheet = gc.open_by_key(sheet_key)
+d2g.upload(read_file, sheet_key, 'insider_transactions_filtered', credentials=creds, row_names=False)
+print('meow')
